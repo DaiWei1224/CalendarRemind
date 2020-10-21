@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">CalendarRemind</string>
+    <string name="remind1">日历去\"权限\"里开启哦</string>
+    <string name="remind2">手机日历可以提醒你签到\n现在让我们开启它</string>
+    <string name="switch_name">手机日历签到提醒</string>
+    <string name="remind_time">提醒时间</string>
+</resources>
