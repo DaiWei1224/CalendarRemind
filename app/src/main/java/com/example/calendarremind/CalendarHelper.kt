@@ -36,7 +36,7 @@ object CalendarHelper {
         var hour = time1
         var minute = time2
         if (hour == 0 && minute == 0) {
-            hour = Calendar.getInstance().get(Calendar.HOUR)
+            hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
             minute = Calendar.getInstance().get(Calendar.MINUTE)
         }
         val dialog = TimePickerDialog(context, TimePickerDialog.THEME_HOLO_LIGHT, { _, hourOfDay, minute ->
