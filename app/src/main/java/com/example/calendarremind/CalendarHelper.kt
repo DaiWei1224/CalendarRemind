@@ -25,7 +25,7 @@ import java.util.*
 object CalendarHelper {
     const val REQUEST_CALENDAR = 0
     const val EVENT_TITLE = "超话签到提醒"
-    private const val EVENT_DESC = "连续签到当“超Fun”，你今天签到了么？快去看看吧\n一键签到链接"
+    private const val EVENT_DESC = "连续签到当“超Fun”，你今天签到了么？快去看看吧"
     private const val TIME_OF_DAY = 1000 * 60 * 60 * 24
     private const val CALENDAR_URL = "content://com.android.calendar/calendars"
     private const val CALENDAR_EVENT_URL = "content://com.android.calendar/events"
@@ -47,16 +47,8 @@ object CalendarHelper {
                     updateCalendarEvent(context, getTimeFromTimePicker(hourOfDay, minute))
                 }
                 if (isSuccess) {
-                    val sHour = if (hourOfDay < 10) {
-                        "0$hourOfDay"
-                    } else {
-                        hourOfDay.toString()
-                    }
-                    val sMinute = if (minute < 10) {
-                        "0$minute"
-                    } else {
-                        minute.toString()
-                    }
+                    val sHour = getFormatTime(hourOfDay)
+                    val sMinute = getFormatTime(minute)
                     val remindTime = "$sHour:$sMinute"
                     (remindLayout.getChildAt(1) as TextView).text = remindTime
                     remindLayout.visibility = View.VISIBLE
@@ -166,6 +158,9 @@ object CalendarHelper {
 
     private fun addCalendarEvent(context: Context, beginTimeMillis: Long): Boolean {
         var beginTime = beginTimeMillis
+        if (System.currentTimeMillis() - beginTime >= 0) {
+            beginTime += TIME_OF_DAY
+        }
         if (beginTime == 0L) {
             beginTime = Calendar.getInstance().timeInMillis + TIME_OF_DAY
         }
@@ -201,9 +196,13 @@ object CalendarHelper {
     }
 
     private fun updateCalendarEvent(context: Context, beginTimeMillis: Long): Boolean {
+        var beginTime = beginTimeMillis
+        if (System.currentTimeMillis() - beginTime >= 0) {
+            beginTime += TIME_OF_DAY
+        }
         return try {
             val eventValues = ContentValues()
-            eventValues.put(CalendarContract.Events.DTSTART, beginTimeMillis)
+            eventValues.put(CalendarContract.Events.DTSTART, beginTime)
             eventValues.put(CalendarContract.Events.DURATION, "P10M")
             eventValues.put(CalendarContract.Events.RRULE, "FREQ=DAILY")
             val eventId = MMKV.defaultMMKV().decodeLong("event_id")
@@ -211,7 +210,7 @@ object CalendarHelper {
             val rowNum = context.contentResolver.update(updateUri, eventValues, null, null)
             if (rowNum <= 0) {
                 // 更新event不成功，说明用户在日历中删除了提醒事件，重新添加
-                addCalendarEvent(context, beginTimeMillis)
+                addCalendarEvent(context, beginTime)
             } else {
                 // 更新提醒 - 依赖更新日程成功
                 val reminderValues = ContentValues()
@@ -258,4 +257,12 @@ object CalendarHelper {
     private fun tomorrowZeroTime() = System.currentTimeMillis() / TIME_OF_DAY * TIME_OF_DAY + TIME_OF_DAY - TimeZone.getDefault().rawOffset
 
     private fun getTimeFromTimePicker(hour: Int, minute: Int) = tomorrowZeroTime() + (hour * 60 * 60 * 1000) + (minute * 60 * 1000)
+
+    private fun getFormatTime(time: Int): String {
+        return if (time < 10) {
+            "0$time"
+        } else {
+            time.toString()
+        }
+    }
 }
